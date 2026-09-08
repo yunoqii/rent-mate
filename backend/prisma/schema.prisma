@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  LANDLORD
+  TENANT
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  username String? @unique
+  phone    String? @unique
+
+  passwordHash String
+  role         UserRole @default(TENANT)
+
+  listings Listing[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  preferences Preferences?
+  bookings    Booking[]
+}
+
+enum PropertyType {
+  APARTMENT
+  ROOM
+  STUDIO
+  HOUSE
+}
+
+enum ListingStatus {
+  AVAILABLE
+  RENTED
+  INACTIVE
+}
+
+model Listing {
+  id          String @id @default(uuid())
+  title       String
+  description String
+
+  propertyType  PropertyType
+  city          String
+  neighborhood  String?
+  address       String
+  price         Decimal      @db.Decimal(10, 2)
+  depositAmount Decimal?     @db.Decimal(10, 2)
+
+  area        Float
+  rooms       Int
+  floor       Int?
+  totalFloors Int?
+
+  latitude  Float
+  longitude Float
+
+  furnished         Boolean @default(false)
+  hasElevator       Boolean @default(false)
+  hasParking        Boolean @default(false)
+  hasBalcony        Boolean @default(false)
+  utilitiesIncluded Boolean @default(false)
+
+  petsAllowed         Boolean @default(false)
+  smokingAllowed      Boolean @default(false)
+  requiresIncomeProof Boolean @default(false)
+
+  maxOccupants   Int?
+  minLeaseMonths Int?
+  availableFrom  DateTime?
+
+  status ListingStatus @default(AVAILABLE)
+
+  landlordId String
+  landlord   User   @relation(fields: [landlordId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+model Preferences {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  wantsPetsAllowed    Boolean @default(false)
+  wantsSmokingAllowed Boolean @default(false)
+
+  desiredPropertyType PropertyType?
+  desiredCity         String?
+  desiredNeighborhood String?
+
+  moveInDate DateTime?
+
+  maxPrice Decimal? @db.Decimal(10, 2)
+  minPrice Decimal? @db.Decimal(10, 2)
+
+  minArea Float?
+  maxArea Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  viewingDate DateTime
+  comment     String?
+  status      BookingStatus @default(PENDING)
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  tenantId String
+  tenant   User   @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+}
