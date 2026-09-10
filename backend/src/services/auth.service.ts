@@ -2,11 +2,11 @@ import prisma from '../lib/prisma';
 import bcrypt from 'bcrypt';
 import { UserRole } from "../generated/prisma/enums";
 import { Prisma } from "../generated/prisma/client";
-import { EmailAlreadyExistsError } from '../lib/errors';
+import { EmailAlreadyExistsError, InvalidDataProvidedError, InvalidCredentialsError } from '../lib/errors';
 
 export async function registerUser(email: string, password: string, role?: UserRole) {
     if (typeof email !== 'string' || typeof password !== 'string') {
-        throw new Error('Invalid data provided');
+        throw new InvalidDataProvidedError();
     }
 
     try {
@@ -26,3 +26,23 @@ export async function registerUser(email: string, password: string, role?: UserR
     }
 };
 
+export async function authUser(email: string, password: string) {
+    if (typeof email !== 'string' || typeof password !== 'string') {
+        throw new InvalidDataProvidedError();
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user) {
+        throw new InvalidCredentialsError();
+    };
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+        throw new InvalidCredentialsError();
+    }
+
+    return { email: user.email, role: user.role, id: user.id };
+};

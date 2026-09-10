@@ -13,4 +13,26 @@ class EmailAlreadyExistsError extends AppError {
     }
 }
 
-export { AppError, EmailAlreadyExistsError };
+class InvalidDataProvidedError extends AppError {
+    constructor() {
+        super("Invalid data provided", 400);
+    }
+}
+
+class InvalidCredentialsError extends AppError {
+    constructor() {
+        super("Invalid email or password", 401);
+    }
+}
+
+class UnauthorizedError extends AppError {
+    constructor(message: string = "Unauthorized") {
+        super(message, 401);
+    }
+}
+
+export {
+    AppError, EmailAlreadyExistsError,
+    InvalidDataProvidedError, InvalidCredentialsError,
+    UnauthorizedError
+};
