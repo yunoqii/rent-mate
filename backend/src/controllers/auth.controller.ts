@@ -1,44 +1,44 @@
-import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { registerUser, authUser } from "../services/auth.service";
-import { AppError } from "../lib/errors";
+import { Request, Response, NextFunction } from "express";
+import { registerUser, authUser, getMe } from "../services/auth.service";
+import { signToken } from "../lib/jwt";
+import { InvalidDataProvidedError, NotFoundError } from "../lib/errors";
+import { UserRole } from "../generated/prisma/enums";
 
-export const register = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+// Only these roles can be chosen at sign-up. ADMIN is never given through a public endpoint.
+const PUBLIC_ROLES: UserRole[] = [UserRole.TENANT, UserRole.LANDLORD];
 
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
-    }
-
+export const register = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = await registerUser(email, password);
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-        return res.json({ token });
-    } catch (error) {
-        if (error instanceof AppError) {
-            return res.status(error.statusCode).json({ message: error.message });
+        const { email, password, role } = req.body ?? {};
+
+        if (role !== undefined && !PUBLIC_ROLES.includes(role)) {
+            throw new InvalidDataProvidedError("role must be TENANT or LANDLORD");
         }
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
+
+        const user = await registerUser(email, password, role);
+        // Issuing the token is an HTTP/session concern, so it lives in the controller
+        return res.status(201).json({ token: signToken(user), user });
+    } catch (error) {
+        next(error);
     }
 };
 
-export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
-    }
-
+export const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { email, password } = req.body ?? {};
         const user = await authUser(email, password);
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-        return res.json({ token });
+        return res.json({ token: signToken(user), user });
     } catch (error) {
-        if (error instanceof AppError) {
-            return res.status(error.statusCode).json({ message: error.message });
-        }
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
+    }
+};
+
+export const me = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await getMe(req.user!.id);
+        if (!user) throw new NotFoundError("User not found");
+        return res.json(user);
+    } catch (error) {
+        next(error);
     }
 };

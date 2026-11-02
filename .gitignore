@@ -1,2 +1,6 @@
 .env
 node_modules/
+dist/
+
+# Personal study notes (conspect) - stay local, not pushed
+notes/

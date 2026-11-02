@@ -78,6 +78,7 @@ model Listing {
   petsAllowed         Boolean @default(false)
   smokingAllowed      Boolean @default(false)
   requiresIncomeProof Boolean @default(false)
+  remoteWorkFriendly  Boolean @default(false)
 
   maxOccupants   Int?
   minLeaseMonths Int?
@@ -92,6 +93,9 @@ model Listing {
   updatedAt DateTime @updatedAt
 
   bookings Booking[]
+
+  @@index([city, status])
+  @@index([price])
 }
 
 model Preferences {
@@ -102,6 +106,7 @@ model Preferences {
 
   wantsPetsAllowed    Boolean @default(false)
   wantsSmokingAllowed Boolean @default(false)
+  wantsRemoteWork     Boolean @default(false)
 
   desiredPropertyType PropertyType?
   desiredCity         String?
@@ -112,8 +117,9 @@ model Preferences {
   maxPrice Decimal? @db.Decimal(10, 2)
   minPrice Decimal? @db.Decimal(10, 2)
 
-  minArea Float?
-  maxArea Float?
+  minArea  Float?
+  maxArea  Float?
+  minRooms Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -139,4 +145,8 @@ model Booking {
   tenant   User   @relation(fields: [tenantId], references: [id])
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([listingId])
+  @@index([tenantId])
 }
