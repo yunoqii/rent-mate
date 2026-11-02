@@ -1,8 +1,7 @@
 import { env } from "./env";
 import { AppError, ServiceUnavailableError } from "./errors";
 
-// Minimal OpenRouter client. OpenRouter speaks the OpenAI Chat Completions format,
-// so plain fetch is enough - no SDK needed.
+
 
 export type ChatMessage =
     | { role: "system" | "user"; content: string }
@@ -48,7 +47,7 @@ export async function chatCompletion(options: ChatOptions) {
             headers: {
                 "Authorization": `Bearer ${env.OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json",
-                // Optional headers OpenRouter uses to show the app in its dashboard
+
                 "HTTP-Referer": "https://github.com/yunoqii/rent-mate",
                 "X-Title": "RentMate AI",
             },
@@ -59,7 +58,7 @@ export async function chatCompletion(options: ChatOptions) {
                 ...(options.toolChoice ? { tool_choice: options.toolChoice } : {}),
                 temperature: options.temperature ?? 0.2,
             }),
-            // Never let a slow LLM hang the request forever
+
             signal: AbortSignal.timeout(30_000),
         });
     } catch (error) {

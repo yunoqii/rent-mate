@@ -5,7 +5,7 @@ import { UserRole } from "../generated/prisma/enums";
 
 const router = Router();
 
-// "/me" instead of "/:userId" - nothing in the URL to tamper with (anti-IDOR)
+
 router.get("/me", requireAuth, requireRole(UserRole.TENANT, UserRole.ADMIN), getMyPreferences);
 router.put("/me", requireAuth, requireRole(UserRole.TENANT, UserRole.ADMIN), putMyPreferences);
 

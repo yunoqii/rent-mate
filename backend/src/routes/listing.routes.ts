@@ -5,7 +5,7 @@ import { UserRole } from "../generated/prisma/enums";
 
 const router = Router();
 
-// Static paths BEFORE "/:id", otherwise "recommended" is taken as an id
+
 router.get("/", listing.getListings);
 router.get("/recommended", requireAuth, requireRole(UserRole.TENANT, UserRole.ADMIN), listing.getRecommended);
 router.get("/mine", requireAuth, requireRole(UserRole.LANDLORD, UserRole.ADMIN), listing.getMyListings);

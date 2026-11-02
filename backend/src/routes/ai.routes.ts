@@ -5,7 +5,6 @@ import { aiRateLimit } from "../middleware/rateLimit.middleware";
 
 const router = Router();
 
-// Every call costs money (OpenRouter credits), so AI routes are rate limited
 router.post("/search", aiRateLimit, optionalAuth, search);
 router.post("/listings/:id/ask", aiRateLimit, askListing);
 

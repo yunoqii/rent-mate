@@ -8,7 +8,6 @@ const router = Router();
 router.post("/", requireAuth, requireRole(UserRole.TENANT, UserRole.ADMIN), booking.createBooking);
 router.get("/my", requireAuth, requireRole(UserRole.TENANT, UserRole.ADMIN), booking.getMyBookings);
 router.get("/incoming", requireAuth, requireRole(UserRole.LANDLORD, UserRole.ADMIN), booking.getIncomingBookings);
-// Who may set which status is decided in the service (needs the booking from the DB)
 router.patch("/:id", requireAuth, booking.updateBooking);
 
 export default router;
